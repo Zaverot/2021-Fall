@@ -30,12 +30,13 @@ class BinaryTree:
 # Sets the temp of each node in the tree T
 # ... to the size of that subtree
 def calculate_size(T):
-    # Set the temp for each node in the tree
-    # The return value is up to you
-    
-    # Your code goes here
-    pass
+    # Base Case
+    if T == None:
+        return 0
 
+    # Recursive Case
+    T.temp = 1 + calculate_size(T.left) + calculate_size(T.right)
+    return T.temp
 
 
 #
@@ -46,11 +47,26 @@ def calculate_size(T):
 # ... and removes subT from T by replacing the pointer 
 # ... to subT in its parent with `None`
 def FindSubtree(T, L, U): 
-    # Instructions:
-    # Implement your Part 2 proof in O(n)-time
-    # The return value is a subtree that meets the constraints
+    
+    def FindSubtree2(T, L, U):
+        if T.right and L <= T.right.temp <= U:
+            subT = T.right
+            T.right = None
+            return subT
+        if T.left and L <= T.left.temp <= U:
+            subT = T.left
+            T.left = None
+            return subT
+        if T.right:
+            return FindSubtree2(T.right, L, U)
+        else:
+            return FindSubtree2(T.left, L, U)
 
-    # Your code goes here
-    pass
+    if calculate_size(T) > U and U >= 2*L:
+        return FindSubtree2(T, L, U)
+    else:
+        return None
+    
+    
 
 
