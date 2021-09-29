@@ -60,7 +60,7 @@ class BinarySearchTree:
         if left_size > ind and self.left is not None:
             return self.left.select(ind)
         if left_size < ind and self.right is not None:
-            return self.right.select(ind)
+            return self.right.select(ind - left_size - 1)
         return None
 
 
@@ -92,14 +92,15 @@ class BinarySearchTree:
         if self.key is None:
             self.key = key
         elif self.key > key: 
+            self.size += 1
             if self.left is None:
                 self.left = BinarySearchTree(self.debugger)
             self.left.insert(key)
         elif self.key < key:
+            self.size += 1
             if self.right is None:
                 self.right = BinarySearchTree(self.debugger)
             self.right.insert(key)
-        self.calculate_sizes()
         return self
 
     
@@ -111,7 +112,32 @@ class BinarySearchTree:
     '''
     def delete(self, key):
         # Your code goes here
-        pass
+        if self.search(key) is None:
+            return self
+        elif key < self.key and self.left is not None:
+            self.size -= 1
+            self.left = self.left.delete(key)    
+        elif key > self.key and self.right is not None:
+            self.size -= 1
+            self.right = self.right.delete(key)
+        
+        else:
+            if self.left is None and self.right is None and self.key == key:
+                return None
+            if self.left is None and self.right is None and self is not None:
+                return self
+            
+            
+            elif self.left is None:
+                return self.right
+
+            elif self.right is None:
+                return self.left
+            else: 
+                return None
+
+            
+        return self
 
     '''
     Performs a `direction`-rotate the `side`-child of (the root of) T (self)
@@ -141,6 +167,10 @@ class BinarySearchTree:
     '''
     def rotate(self, direction, child_side):
         # Your code goes here
+
+
+
+
         return self
 
     def print_bst(self):
