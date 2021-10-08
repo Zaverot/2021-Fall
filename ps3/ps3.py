@@ -110,34 +110,39 @@ class BinarySearchTree:
     Deletes a key from the tree
     Returns the root of the tree or None if the tree has no nodes   
     '''
-    def delete(self, key):
-        # Your code goes here
-        if self.search(key) is None:
-            return self
-        elif key < self.key and self.left is not None:
-            self.size -= 1
-            self.left = self.left.delete(key)    
-        elif key > self.key and self.right is not None:
-            self.size -= 1
-            self.right = self.right.delete(key)
-        
-        else:
+    def deleteHelper(self, key):
+        self.size -= 1
+
+        if self.key == key:
             if self.left is None and self.right is None and self.key == key:
                 return None
-            if self.left is None and self.right is None and self is not None:
-                return self
-            
-            
+            # nodes with single subtrees
             elif self.left is None:
                 return self.right
 
             elif self.right is None:
                 return self.left
+            # nodes with two subtrees
             else: 
-                return None
+                temp = self.left.select(self.left.size - 1)
+                temp.left = self.left.deleteHelper(temp.key)
+                temp.right = self.right
+                temp.size = self.size - 1
+                return temp
+        
+        if key < self.key and self.left is not None:
+            self.left = self.left.deleteHelper(key)    
+        if key > self.key and self.right is not None:
+            self.right = self.right.deleteHelper(key)
 
-            
         return self
+
+    def delete(self, key):
+        # Your code goes here
+        if self.search(key) is None:
+            return self
+        
+        return self.deleteHelper(key)
 
     '''
     Performs a `direction`-rotate the `side`-child of (the root of) T (self)
@@ -166,9 +171,73 @@ class BinarySearchTree:
        11 
     '''
     def rotate(self, direction, child_side):
-        # Your code goes here
+        # store size information
+        sizeRight = 0 if self.right is None else self.right.size
+        sizeLeft = 0 if self.left is None else self.left.size
 
+        if direction == 'L':
+            if child_side == 'R':
 
+                # store subtree size info
+                sizeRightRight = self.right.right.size
+                sizeRightRightLeft = self.right.right.left.size if self.right.right.left is not None else 0
+
+                # rotate tree
+                temp = self.right.right
+                self.right.right = temp.left
+                temp.left = self.right 
+                self.right = temp
+
+                # adjust sizes of subtrees
+                self.right.size = sizeRight
+                self.right.left.size = sizeRight - sizeRightRight + sizeRightRightLeft
+            # if child_size == 'L'
+            else:
+                sizeLeftRight = size.left.right.size
+                sizeLeftRightLeft = self.left.right.left.size if self.left.right.left is not None else 0
+
+                # rotate tree
+                temp = self.left 
+                temp2 = self.left.right
+                temp.right = temp2.left
+                temp2.left = temp
+                self.left = temp2 
+
+                # adjust subtree sizes
+                self.left.size = sizeLeft
+                self.left.left.size = sizeLeft - sizeLeftRight + sizeLeftRightLeft
+
+        # direction == 'R'          
+        else:  
+            if child_side == 'L':
+                # store subtree size info
+                sizeLeftLeft = self.left.left.size
+                sizeLeftLeftRight = self.left.left.right.size if self.left.left.right is not None else 0
+
+                # rotate tree
+                temp = self.left.left
+                self.left.left = temp.right
+                temp.right = self.left 
+                self.left = temp
+
+                # adjust sizes of subtrees
+                self.left.size = sizeLeft
+                self.left.right.size = sizeLeft - sizeLeftLeft + sizeLeftLeftRight
+            # if child_size == 'R'
+            else:
+                sizeRightLeft = self.right.left.size
+                sizeRightLeftRight = self.right.left.right.size if self.right.left.right is not None else 0
+
+                # rotate tree
+                temp = self.right
+                temp2 = self.right.left
+                temp.left = temp2.right
+                temp2.right = temp
+                self.right = temp2 
+
+                # adjust subtree sizes
+                self.right.size = sizeRight
+                self.right.right.size = sizeRight - sizeRightLeft + sizeRightLeftRight
 
 
         return self

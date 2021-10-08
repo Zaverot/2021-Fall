@@ -1,0 +1,111 @@
+\documentclass[11pt]{article}
+\usepackage{classTools}
+
+
+\begin{document}
+
+% To include a problems set header, use the psHeader command
+\psHeader{4}{Wed Oct. 6, 2021 (5pm)}
+
+\textbf{Your name: }
+
+\textbf{Collaborators: }
+
+\textbf{No. of late days used on previous psets: }
+
+\textbf{No. of late days used after including this pset: }
+
+\newcommand{\cmd}{\texttt{cmd}}
+\newcommand{\READ}{\texttt{read}}
+\newcommand{\W}{\texttt{W}}
+\newcommand{\result}{\texttt{result}}
+\newcommand{\counter}{\texttt{counter}}
+
+The purpose of this problem set is to solidify your understanding of the RAM model (and variants), and the relations between the RAM model, the Word-RAM model, Python programs, and variants. In particular, you will build skills in simulating one computational model by another and in evaluating the runtime of the simulations (both in theory and in practice).
+
+\begin{enumerate}
+ 
+    \item (Simulation in practice: RAMs on Python)  
+    In the Github repository, we have given you a partially written Python implementation of a RAM Model simulator.  Your task is to fill in the missing parts of the code to obtain a complete RAM simulator.
+     Your simulator should take as input a RAM Program $P$ and an input $x$, and simulate the execution of $P$ on $x$, and return whatever output $P$ produces (if it halts).  The RAM Program $P$ is given as a Python list $[v,C_0,C_1,\ldots,C_{\ell-1}]$, where $v$ is the number of variables used by $P$.  For simplicity, we assume that the variables are numbers $0,\ldots,v-1$, but you can introduce constants to give names to the variables.  The $0$\textsuperscript{th} variable will always be $\inputlen$, the $1$\textsuperscript{st} variable $\outputpointer$, and the $2$\textsuperscript{nd} variable $\outputlen$.  A command $C$ is given in the form of a list of the form $[\cmd]$, $[\cmd,i]$, $[\cmd,i,j]$, or $[\cmd,i,j,k]$, where $\cmd$ is the name of the command and $i,j,k$ are the indices of the variables or line numbers used in the command.  For example,  the command $\var_i = M[\var_j]$ would be represented as $(\READ,i,j)$.  See the Github repository for the precise syntax as well as some RAM programs you can use to test your simulator.
+
+    \item (Empirically evaluating simulation runtimes and explaining them theoretically)  
+    Consider the following two RAM programs:
+    
+\begin{algorithm}[H]
+\Input{A single natural number $N$ (as an array of length 1)}
+\Output{$7^{2^N}$ (as an array of length 1)}
+\Variables{$\inputlen, \outputpointer, \outputlen, \counter, \result$}
+$\zero = 0$\;
+$\one = 1$\;
+$\outputlen = 1$\;
+$\outputpointer = 0$\;
+$\result = 7$\;
+$\counter = M[\zero]$\;
+\Indp
+ IF $\counter == 0$ GOTO \ref{line:done}\; \label{line:loop}
+$\result = \result * \result$\;
+$\counter = \counter - \one$\;
+IF $\zero == 0$ GOTO \ref{line:loop}\;
+\Indm
+$M[\outputpointer]=\result$\; \label{line:done}
+HALT\;
+\end{algorithm}
+
+
+\begin{algorithm}[H]
+\Input{A single natural number $N$ (as an array of length 1)}
+\Output{$7^{2^N} \bmod 2^{32}$ (as an array of length 1)}
+\Variables{$\inputlen, \outputpointer, \outputlen, \counter, \result, \temp, \W$}
+$\zero = 0$\;
+$\one = 1$\;
+$\outputlen = 1$\;
+$\outputpointer = 0$\;
+$\result = 7$\;
+$\W = 2^{32}$\;
+$\counter = M[\zero]$\;
+\Indp
+IF $\counter == 0$ GOTO \ref{line:done2}\; \label{line:loop2}
+$\result = \result * \result$\;
+$\temp = \result / \W$\;
+$\temp = \temp \times \W$\;
+$\result = \result - \temp$\;
+$\counter = \counter - \one$\;
+IF $\zero == 0$ GOTO \ref{line:loop2}\;
+\Indm
+$M[\outputpointer]=\result$\; \label{line:done2} 
+HALT \;
+\end{algorithm}
+
+
+\begin{enumerate}
+    \item Exactly calculate (without asymptotic notation) the RAM-model running times of the above algorithms as a function of $N$.
+    Which one is faster? \label{itm:RAMtime}
+    
+    \item Using your RAM Simulator, run both RAM programs on inputs $N=0,1,2,\ldots,15$ and graph the actual running times (in clock time, not RAM steps).  (We have provided you with some timing and graphing code in the Github repository.) Which one is faster?  \label{itm:realtime}  
+    
+    \item Explain the discrepancies you see between Parts~\ref{itm:RAMtime} and \ref{itm:realtime}.
+    
+    \item (challenge*) Give a theoretical explanation (using asymptotic estimates) of the shapes of the runtime curves you see in Part~\ref{itm:realtime}. You may need to do some research online and/or make guesses about how Python operations are implemented to come up with your estimates.
+\end{enumerate}
+
+\item (Simulation in theory: Word-RAM vs. variants) One common assembly language operation that we did not include in our Word-RAM model is {\em bitwise-XOR}.  Given $w$-bit numbers $x$ and $y$ with binary representations $x=x_{w-1}x_{w-2}\cdots x_0$ and $y=y_{w-1}y_{w-2}\cdots w_0$, their bitwise XOR $z=x\oplus y$ is the number whose binary representation $z=z_{w-1}z_{w-2}\cdots z_0$ satisfies $z_i = x_i \oplus y_i$ for $i=0,\ldots,w-1$.
+
+\begin{enumerate}
+    \item Prove that when the current word size is $w$, a bitwise XOR operation $z=x \oplus y$ can be computed in our Word-RAM model (without an $\oplus$ operation) in time $O(w)$.  Here you are given $x,y,z$ as individual variables in the Word-RAM program (no need to read from or write to memory), and the current word size is also given as a variable $\wordlen$.  You may may introduce additional temporary variables if useful. \label{part:xor}
+    
+    \item Using Part~\ref{part:xor}, show that for every XOR-extended Word-RAM program $P$, there is an ordinary Word-RAM Program $P'$ such that for every input $x$, $P'(x)=P(x)$. As above, you may assume that the current word size is given as a variable $\wordlen$, which is automatically updated as the word size increases.
+    
+    In addition, argue that 
+    when the input $x=(x[0],\ldots,x[n-1])$ satisfies $x[0],x[1],\ldots,x[n-1]\leq n$ (i.e. the input numbers are not too big relative to the length) and $\Time_P(x)\geq n$ (i.e. $P$ runs in enough time to read the entire input), then 
+    $$\Time_{P'}(x) = O\left(\Time_{P}(x) \cdot \log \Time_P(x))\right).$$
+    \emph{(Hint: First show that the maximum memory size used by $P$ on $x$ is at most $n+\Time_P(x)$.)}
+    
+\end{enumerate}
+       
+The take-away point is that while the exact choice of which operations to include in a RAM model may affect the asymptotic running time, it typically affects it by logarithmic factors (so it might make the difference between $O(n)$ and $O(n\log n)$, but not between $O(n)$ and $O(n^2)$).
+  
+\end{enumerate}
+
+
+\end{document}
